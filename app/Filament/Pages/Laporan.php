@@ -69,6 +69,7 @@ class Laporan extends Page implements Tables\Contracts\HasTable
     public function mount()
     {
         $this->filterYear = now()->year;
+        $this->endDate    = now()->format('Y-m-d');
         $this->calculateSummary();
         $this->calculateDuesSummary(); // Hitung summary dues
         $this->prepareChartData();     // Siapkan data chart
