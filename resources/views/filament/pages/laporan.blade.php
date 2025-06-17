@@ -1,4 +1,139 @@
 <x-filament-panels::page>
+    {{-- Chart Section --}}
+    {{-- Chart Section --}}
+    @if (!empty($chartData))
+        <div class="bg-background rounded-lg shadow-sm border p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">
+                Grafik {{ $activeTab === 'transaksi' ? 'Transaksi' : 'Iuran' }}
+            </h3>
+
+            <div style="position: relative; height: 400px; width: 100%;">
+                <div x-data="{
+                    chartInstance: null,
+                    activeTab: @js($activeTab),
+                    chartData: @js($chartData),
+                    filterMode: @js($filterMode),
+                    filterYear: @js($filterYear),
+                    filterMonth: @js($filterMonth),
+
+                    initChart() {
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                this.renderChart();
+                            }, 100);
+                        });
+
+                        Livewire.on('tab-changed', (event) => {
+                            this.activeTab = event.tab;
+                            this.chartData = event.chartData;
+                            this.refreshChart();
+                        });
+                    },
+
+                    refreshChart() {
+                        if (this.chartInstance) {
+                            this.chartInstance.destroy();
+                            this.chartInstance = null;
+                        }
+                        this.$nextTick(() => {
+                            this.renderChart();
+                        });
+                    },
+
+                    renderChart() {
+                        if (!this.$refs.canvas) return;
+
+                        const ctx = this.$refs.canvas.getContext('2d');
+                        if (!ctx) return;
+
+                        if (!this.chartData || Object.keys(this.chartData).length === 0) {
+                            ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+                            return;
+                        }
+
+                        const labels = {
+                            income: this.activeTab === 'transaksi' ? 'Pemasukan' : 'Masuk',
+                            expense: this.activeTab === 'transaksi' ? 'Pengeluaran' : 'Keluar'
+                        };
+
+                        // Generate labels based on filter mode
+                        let chartLabels = [];
+                        if (this.filterMode === 'month') {
+                            // For month filter - show days (1, 2, 3...)
+                            chartLabels = Object.keys(this.chartData).map(day =>
+                                `${day} ${this.getMonthName(this.filterMonth)}`
+                            );
+                        } else if (this.filterMode === 'year') {
+                            // For year filter - show month names
+                            chartLabels = Object.keys(this.chartData).map(m =>
+                                this.getMonthName(m)
+                            );
+                        } else {
+                            // For range filter - show formatted dates (1 Jan, 2 Jan...)
+                            chartLabels = Object.keys(this.chartData).map(dateStr => {
+                                const date = new Date(dateStr);
+                                return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                            });
+                        }
+
+                        this.chartInstance = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: chartLabels,
+                                datasets: [{
+                                    label: labels.income,
+                                    data: Object.values(this.chartData).map(d => d.income || 0),
+                                    backgroundColor: '#10B981',
+                                    borderRadius: 4
+                                }, {
+                                    label: labels.expense,
+                                    data: Object.values(this.chartData).map(d => d.expense || 0),
+                                    backgroundColor: '#EF4444',
+                                    borderRadius: 4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: {
+                                        grid: { display: false }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: 'rgba(0,0,0,0.1)' },
+                                        ticks: {
+                                            callback: function(value) {
+                                                return 'Rp ' + value.toLocaleString('id-ID');
+                                            }
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                return context.dataset.label + ': Rp ' +
+                                                    context.parsed.y.toLocaleString('id-ID');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    },
+
+                    getMonthName(monthNumber) {
+                        return new Date(0, monthNumber - 1).toLocaleString('id-ID', { month: 'short' });
+                    }
+                }" x-init="initChart()"
+                    wire:key="chart-container-{{ $activeTab }}-{{ $filterMode }}-{{ $filterYear }}-{{ $filterMonth }}"
+                    style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+                    <canvas x-ref="canvas" style="display: block; width: 100%; height: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    @endif
     {{-- Form Filter --}}
     <div class="bg-background rounded-lg shadow-sm border p-6 mb-6">
         <h2 class="text-lg font-semibold text-foreground mb-4">Filter Laporan</h2>
@@ -155,142 +290,6 @@
                     <div class="text-2xl font-bold {{ $balanceTextClass }}">
                         Rp {{ number_format(abs($balance), 0, ',', '.') }}
                     </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    {{-- Chart Section --}}
-    {{-- Chart Section --}}
-    @if (!empty($chartData))
-        <div class="bg-background rounded-lg shadow-sm border p-6 mb-6">
-            <h3 class="text-lg font-semibold mb-4">
-                Grafik {{ $activeTab === 'transaksi' ? 'Transaksi' : 'Iuran' }}
-            </h3>
-
-            <div style="position: relative; height: 400px; width: 100%;">
-                <div x-data="{
-                    chartInstance: null,
-                    activeTab: @js($activeTab),
-                    chartData: @js($chartData),
-                    filterMode: @js($filterMode),
-                    filterYear: @js($filterYear),
-                    filterMonth: @js($filterMonth),
-
-                    initChart() {
-                        this.$nextTick(() => {
-                            setTimeout(() => {
-                                this.renderChart();
-                            }, 100);
-                        });
-
-                        Livewire.on('tab-changed', (event) => {
-                            this.activeTab = event.tab;
-                            this.chartData = event.chartData;
-                            this.refreshChart();
-                        });
-                    },
-
-                    refreshChart() {
-                        if (this.chartInstance) {
-                            this.chartInstance.destroy();
-                            this.chartInstance = null;
-                        }
-                        this.$nextTick(() => {
-                            this.renderChart();
-                        });
-                    },
-
-                    renderChart() {
-                        if (!this.$refs.canvas) return;
-
-                        const ctx = this.$refs.canvas.getContext('2d');
-                        if (!ctx) return;
-
-                        if (!this.chartData || Object.keys(this.chartData).length === 0) {
-                            ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-                            return;
-                        }
-
-                        const labels = {
-                            income: this.activeTab === 'transaksi' ? 'Pemasukan' : 'Masuk',
-                            expense: this.activeTab === 'transaksi' ? 'Pengeluaran' : 'Keluar'
-                        };
-
-                        // Generate labels based on filter mode
-                        let chartLabels = [];
-                        if (this.filterMode === 'month') {
-                            // For month filter - show days (1, 2, 3...)
-                            chartLabels = Object.keys(this.chartData).map(day =>
-                                `${day} ${this.getMonthName(this.filterMonth)}`
-                            );
-                        } else if (this.filterMode === 'year') {
-                            // For year filter - show month names
-                            chartLabels = Object.keys(this.chartData).map(m =>
-                                this.getMonthName(m)
-                            );
-                        } else {
-                            // For range filter - show formatted dates (1 Jan, 2 Jan...)
-                            chartLabels = Object.keys(this.chartData).map(dateStr => {
-                                const date = new Date(dateStr);
-                                return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                            });
-                        }
-
-                        this.chartInstance = new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: chartLabels,
-                                datasets: [{
-                                    label: labels.income,
-                                    data: Object.values(this.chartData).map(d => d.income || 0),
-                                    backgroundColor: '#10B981',
-                                    borderRadius: 4
-                                }, {
-                                    label: labels.expense,
-                                    data: Object.values(this.chartData).map(d => d.expense || 0),
-                                    backgroundColor: '#EF4444',
-                                    borderRadius: 4
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    x: {
-                                        grid: { display: false }
-                                    },
-                                    y: {
-                                        beginAtZero: true,
-                                        grid: { color: 'rgba(0,0,0,0.1)' },
-                                        ticks: {
-                                            callback: function(value) {
-                                                return 'Rp ' + value.toLocaleString('id-ID');
-                                            }
-                                        }
-                                    }
-                                },
-                                plugins: {
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                return context.dataset.label + ': Rp ' +
-                                                    context.parsed.y.toLocaleString('id-ID');
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    },
-
-                    getMonthName(monthNumber) {
-                        return new Date(0, monthNumber - 1).toLocaleString('id-ID', { month: 'short' });
-                    }
-                }" x-init="initChart()"
-                    wire:key="chart-container-{{ $activeTab }}-{{ $filterMode }}-{{ $filterYear }}-{{ $filterMonth }}"
-                    style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                    <canvas x-ref="canvas" style="display: block; width: 100%; height: 100%;"></canvas>
                 </div>
             </div>
         </div>
