@@ -25,6 +25,8 @@ class TransactionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
     protected static ?string $navigationGroup = 'Kas Umum';
+
+    protected static ?string $navigationLabel = 'Transaksi';
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -125,26 +127,5 @@ class TransactionResource extends Resource
             'create' => Pages\CreateTransaction::route('/create'),
             'edit'   => Pages\EditTransaction::route('/{record}/edit'),
         ];
-    }
-
-    // Akses kontrol berbasis role
-    public static function canViewAny(): bool
-    {
-        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Bendahara', 'Ketua']);
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Bendahara']);
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Bendahara']);
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->check() && auth()->user()->hasRole(['super_admin', 'Bendahara']);
     }
 }

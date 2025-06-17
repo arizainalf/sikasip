@@ -31,9 +31,16 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('')
             ->login()
+            ->font('Poppins')
             ->brandName('KAS IPNU') // Sesuaikan dengan nama organisasi Anda
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Emerald,
+            ])
+            ->navigationGroups([
+                'Kas Umum',
+                'Kas Wajib',
+                'Laporan',
+                'Pelindung'
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

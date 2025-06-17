@@ -7,11 +7,11 @@
         <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
             <button type="button" wire:click="switchTab('transaksi')"
                 class="px-4 py-2 font-medium text-sm {{ $activeTab === 'transaksi' ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300' }}">
-                Transaksi Biasa
+                Kas Umum
             </button>
             <button type="button" wire:click="switchTab('dues')"
                 class="px-4 py-2 font-medium text-sm {{ $activeTab === 'dues' ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300' }}">
-                Iuran (Dues)
+                Kas Wajib
             </button>
         </div>
 

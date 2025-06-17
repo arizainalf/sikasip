@@ -179,25 +179,4 @@ class DuesTransactionResource extends Resource
             'edit'   => Pages\EditDuesTransaction::route('/{record}/edit'),
         ];
     }
-
-    // Akses kontrol berbasis role
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->hasRole(['super_admin', 'Bendahara', 'Ketua']);
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()->hasRole(['super_admin', 'Bendahara']);
-    }
-
-    public static function canEdit(Model $record): bool
-    {
-        return auth()->user()->hasRole(['super_admin', 'Bendahara']);
-    }
-
-    public static function canDelete(Model $record): bool
-    {
-        return auth()->user()->hasRole(['super_admin', 'Bendahara']);
-    }
 }

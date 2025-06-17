@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
@@ -8,11 +7,9 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class CategoryResource extends Resource
 {
@@ -21,6 +18,12 @@ class CategoryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
     protected static ?string $navigationGroup = 'Kas Umum';
+
+    protected static ?string $navigationLabel = 'Kategori';
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     protected static ?int $navigationSort = 1;
 
@@ -35,7 +38,7 @@ class CategoryResource extends Resource
             Forms\Components\Select::make('type')
                 ->label('Jenis Kategori')
                 ->options([
-                    'pemasukan' => 'Pemasukan',
+                    'pemasukan'   => 'Pemasukan',
                     'pengeluaran' => 'Pengeluaran',
                 ])
                 ->required(),
@@ -54,7 +57,7 @@ class CategoryResource extends Resource
                     ->label('Jenis')
                     ->colors([
                         'success' => 'pemasukan',
-                        'danger' => 'pengeluaran',
+                        'danger'  => 'pengeluaran',
                     ]),
             ])
             ->filters([
@@ -79,14 +82,9 @@ class CategoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCategories::route('/'),
+            'index'  => Pages\ListCategories::route('/'),
             'create' => Pages\CreateCategory::route('/create'),
-            'edit' => Pages\EditCategory::route('/{record}/edit'),
+            'edit'   => Pages\EditCategory::route('/{record}/edit'),
         ];
-    }
-
-    public static function canViewAny(): bool
-    {
-        return auth()->user()->can('manage categories');
     }
 }

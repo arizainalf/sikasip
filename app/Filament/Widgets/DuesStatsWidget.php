@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Widgets;
 
 use App\Filament\Pages\DuesValidation;
@@ -13,14 +12,14 @@ use Illuminate\Support\Number;
 
 class DuesStatsWidget extends BaseWidget
 {
-    protected ?string $heading = 'Ringkasan Kas Wajib';
+    protected ?string $heading  = 'Ringkasan Kas Wajib';
     protected static ?int $sort = 2;
 
     protected function getStats(): array
     {
-        $now = Carbon::now();
-        $month = $now->month;
-        $year = $now->year;
+        $now       = Carbon::now();
+        $month     = $now->month;
+        $year      = $now->year;
         $monthName = $now->isoFormat('MMMM');
 
         $totalIncome = DuesTransaction::where('type', 'masuk')
@@ -36,7 +35,7 @@ class DuesStatsWidget extends BaseWidget
         $balance = $totalIncome - $totalExpenses;
 
         $totalMembers = Member::count();
-        $paidMembers = DuesTransaction::where('type', 'masuk')
+        $paidMembers  = DuesTransaction::where('type', 'masuk')
             ->where('period_month', $month)
             ->where('period_year', $year)
             ->distinct()
@@ -45,19 +44,19 @@ class DuesStatsWidget extends BaseWidget
         $unpaidMembers = $totalMembers - $paidMembers;
 
         return [
-            Stat::make('Saldo (Bulan Ini)', Number::currency($balance, 'IDR'))
+            Stat::make('Saldo (Bulan Ini)', Number::currency($balance, 'IDR', 'id'))
                 ->description(
-                    'Pemasukan: ' . Number::currency($totalIncome, 'IDR') .
-                    ' | Pengeluaran: ' . Number::currency($totalExpenses, 'IDR')
+                    'Pemasukan: ' . Number::currency($totalIncome, 'IDR', 'id') .
+                    ' | Pengeluaran: ' . Number::currency($totalExpenses, 'IDR', 'id')
                 )
                 ->color($balance >= 0 ? 'success' : 'danger')
                 ->url(DuesTransactionResource::getUrl('index')),
-        
+
             Stat::make('Status Iuran (' . $monthName . ')', "$paidMembers / $totalMembers Lunas")
                 ->description("$unpaidMembers anggota belum membayar.")
                 ->color('info')
                 ->url(DuesValidation::getUrl()),
         ];
-        
+
     }
 }

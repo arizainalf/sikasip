@@ -26,6 +26,10 @@ class Laporan extends Page implements Tables\Contracts\HasTable
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
     protected static string $view            = 'filament.pages.laporan';
 
+    protected static ?string $title = 'Laporan';
+
+    protected static ?string $navigationGroup = 'Laporan';
+
     // Filter properties
     public string $activeTab    = 'transaksi';
     public ?string $filterMode  = 'year';
@@ -168,16 +172,35 @@ class Laporan extends Page implements Tables\Contracts\HasTable
 
     public function exportToPdf()
     {
+        $chartLabels = [];
+        $incomeData  = [];
+        $expenseData = [];
+
+        foreach ($this->chartData as $label => $values) {
+            $chartLabels[] = $label;
+            $incomeData[]  = $values['income'] ?? 0;
+            $expenseData[] = $values['expense'] ?? 0;
+        }
+
         $data = [
-            'summary'   => $this->activeTab === 'transaksi' ? $this->summary : $this->duesSummary,
-            'title'     => $this->activeTab === 'transaksi' ? 'Laporan Transaksi' : 'Laporan Iuran',
-            'period'    => $this->getPeriodText(),
-            'chartData' => $this->chartData,
+            'summary'      => $this->activeTab === 'transaksi' ? $this->summary : $this->duesSummary,
+            'title'        => $this->activeTab === 'transaksi' ? 'Kas Umum' : 'Kas Wajib',
+            'period'       => $this->getPeriodText(),
+            'chartLabels'  => $chartLabels,
+            'chartData'    => $this->chartData,
+            'incomeData'   => $incomeData,
+            'expenseData'  => $expenseData,
+            'transactions' => $this->table->getRecords(),
+            'activeTab'    => $this->activeTab,
         ];
 
         $pdf = Pdf::loadHTML(
             Blade::render('exports.transaction-pdf', $data)
-        );
+        )->setOption([
+            'enable_javascript'    => true,
+            'isRemoteEnabled'      => true,
+            'isHtml5ParserEnabled' => true,
+        ]);
 
         return response()->streamDownload(
             fn() => print($pdf->output()),
@@ -451,7 +474,7 @@ class Laporan extends Page implements Tables\Contracts\HasTable
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('member.name')
-                    ->label('Member')
+                    ->label('Anggota')
                     ->wrap(),
                 TextColumn::make('description')
                     ->label('Keterangan')
