@@ -29,8 +29,13 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('')
+            ->path('/')
+            ->darkMode(false)
             ->login()
+            ->spa()
+            ->profile()
+            ->favicon('logo.png')
+            ->brandLogo(fn () => view('logo'))
             ->font('Poppins')
             ->brandName('KAS IPNU') // Sesuaikan dengan nama organisasi Anda
             ->colors([
@@ -42,6 +47,12 @@ class AdminPanelProvider extends PanelProvider
                 'Laporan',
                 'Pelindung'
             ])
+            ->maxContentWidth('full')
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->sidebarWidth('18rem')
+            ->sidebarCollapsibleOnDesktop()
+            ->collapsedSidebarWidth('5rem')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
