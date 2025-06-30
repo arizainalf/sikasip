@@ -1,42 +1,40 @@
 <?php
-
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\DuesTransactionResource\Pages;
 use App\Models\DuesTransaction;
 use Carbon\Carbon;
 use Closure;
-use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 class DuesTransactionResource extends Resource
 {
-    protected static ?string $model = DuesTransaction::class;
+    protected static ?string $model          = DuesTransaction::class;
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
 
     // Pengaturan Sidebar
     protected static ?string $navigationLabel = 'Transaksi Iuran';
     protected static ?string $navigationGroup = 'Kas Wajib';
-    protected static ?int $navigationSort = 2;
+    protected static ?string $title           = 'Transaksi Iuran';
+    protected static ?int $navigationSort     = 2;
 
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
 
-        if (!auth()->user()->hasRole('super_admin') && !auth()->user()->hasRole('Bendahara')) {
+        if (! auth()->user()->hasRole('super_admin') && ! auth()->user()->hasRole('Bendahara')) {
             // Anggap pengguna adalah anggota dan hanya bisa melihat transaksi miliknya
             $query->where('member_id', auth()->id());
         }
@@ -55,12 +53,12 @@ class DuesTransactionResource extends Resource
             Select::make('type')
                 ->label('Jenis Transaksi')
                 ->options([
-                    'masuk' => 'Kas Masuk (Iuran)',
+                    'masuk'  => 'Kas Masuk (Iuran)',
                     'keluar' => 'Kas Keluar (Pengeluaran)',
                 ])
                 ->required()
                 ->live()
-                ->afterStateUpdated(fn (Set $set) => [
+                ->afterStateUpdated(fn(Set $set) => [
                     $set('member_id', null),
                     $set('amount', null),
                     $set('description', null),
@@ -70,13 +68,17 @@ class DuesTransactionResource extends Resource
                 ->label('Anggota')
                 ->relationship('member', 'name')
                 ->searchable()
-                ->required(fn (Get $get) => $get('type') === 'masuk')
-                ->visible(fn (Get $get) => $get('type') === 'masuk')
+                ->required(fn(Get $get) => $get('type') === 'masuk')
+                ->visible(fn(Get $get) => $get('type') === 'masuk')
                 ->rules([
-                    fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                        if ($get('type') !== 'masuk') return;
+                    fn(Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                        if ($get('type') !== 'masuk') {
+                            return;
+                        }
 
-                        if (empty($get('period_month')) || empty($get('period_year'))) return;
+                        if (empty($get('period_month')) || empty($get('period_year'))) {
+                            return;
+                        }
 
                         $query = DuesTransaction::where('member_id', $value)
                             ->where('period_month', $get('period_month'))
@@ -95,31 +97,31 @@ class DuesTransactionResource extends Resource
 
             Select::make('period_month')
                 ->label('Untuk Bulan')
-                ->options(fn () => collect(range(1, 12))
-                    ->mapWithKeys(fn ($m) => [$m => Carbon::create(null, $m)->isoFormat('MMMM')])
+                ->options(fn() => collect(range(1, 12))
+                        ->mapWithKeys(fn($m) => [$m => Carbon::create(null, $m)->isoFormat('MMMM')])
                 )
-                ->required(fn (Get $get) => $get('type') === 'masuk')
-                ->visible(fn (Get $get) => $get('type') === 'masuk'),
+                ->required(fn(Get $get) => $get('type') === 'masuk')
+                ->visible(fn(Get $get) => $get('type') === 'masuk'),
 
             Select::make('period_year')
                 ->label('Untuk Tahun')
-                ->options(fn () => collect(range(now()->year, 2020))
-                    ->mapWithKeys(fn ($y) => [$y => $y])
+                ->options(fn() => collect(range(now()->year, 2020))
+                        ->mapWithKeys(fn($y) => [$y => $y])
                 )
-                ->required(fn (Get $get) => $get('type') === 'masuk')
-                ->visible(fn (Get $get) => $get('type') === 'masuk'),
+                ->required(fn(Get $get) => $get('type') === 'masuk')
+                ->visible(fn(Get $get) => $get('type') === 'masuk'),
 
             Textarea::make('description')
                 ->label('Keterangan')
-                ->required(fn (Get $get) => $get('type') === 'keluar')
-                ->visible(fn (Get $get) => $get('type') === 'keluar'),
+                ->required(fn(Get $get) => $get('type') === 'keluar')
+                ->visible(fn(Get $get) => $get('type') === 'keluar'),
 
             TextInput::make('amount')
                 ->label('Jumlah (Nominal)')
                 ->prefix('Rp')
                 ->numeric()
-                ->required(fn (Get $get) => $get('type') === 'keluar')
-                ->visible(fn (Get $get) => $get('type') === 'keluar'),
+                ->required(fn(Get $get) => $get('type') === 'keluar')
+                ->visible(fn(Get $get) => $get('type') === 'keluar'),
         ]);
     }
 
@@ -145,7 +147,7 @@ class DuesTransactionResource extends Resource
                     ->label('Jenis')
                     ->colors([
                         'success' => 'masuk',
-                        'danger' => 'keluar',
+                        'danger'  => 'keluar',
                     ]),
 
                 TextColumn::make('amount')
@@ -179,4 +181,5 @@ class DuesTransactionResource extends Resource
             'edit'   => Pages\EditDuesTransaction::route('/{record}/edit'),
         ];
     }
+
 }

@@ -1,11 +1,10 @@
 <?php
-
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\DuesTransaction;
 use App\Models\Member;
 use App\Models\Transaction;
-use App\Models\DuesTransaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -16,9 +15,9 @@ class FinancialDataSeeder extends Seeder
     {
         // Seed User
         User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
+            'name'              => 'Admin',
+            'email'             => 'admin@gmail.com',
+            'password'          => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
 
